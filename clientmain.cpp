@@ -1,7 +1,10 @@
+#include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 /* You will to add includes here */
+#include <sys/_endian.h>
+#include <sys/_types/_socklen_t.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sstream>
@@ -15,6 +18,11 @@
 
 // Included to get the support library
 #include "calcLib.h"
+
+void error(const std::string& message) {
+  std::cerr << "Error: " << message << std::endl;
+  exit(1);
+}
 
 int main(int argc, char *argv[]){
 
@@ -35,12 +43,27 @@ int main(int argc, char *argv[]){
 #endif
 
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+  if (clientSocket == -1) {
+    error("Failed to create socket");
+  }
 
   sockaddr_in serverAddr;
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_addr.s_addr = inet_addr(Desthost);
   serverAddr.sin_port = htons(port);
 
-  
+  if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) {
+    error("Failed to connect to server");
+  }
+
+#ifdef DEBUG
+  sockaddr_in cli_addr;
+  socklen_t len = sizeof(cli_addr);
+  if (getsockname(sock, (struct sockaddr *)&cli_addr, &len) < 0) {
+    error("Failed to get local socket name");
+  }
+  std::cout << "Connected to " << Desthost << ":" << port 
+  << " local " << inet_ntoa(cli_addr.sin_addr) << ":" << ntohs(cli_addr.sin_port) << std::endl;
+#endif
 
 }
