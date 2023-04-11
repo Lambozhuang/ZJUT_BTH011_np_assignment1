@@ -1,14 +1,18 @@
 #include <netinet/in.h>
+#include <ostream>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 /* You will to add includes here */
+#include <string>
 #include <sys/_endian.h>
 #include <sys/_types/_socklen_t.h>
+#include <sys/_types/_ssize_t.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sstream>
 #include <iostream>
+#include <unistd.h>
 
 
 // Enable if you want debugging to be printed, see examble below.
@@ -19,9 +23,27 @@
 // Included to get the support library
 #include "calcLib.h"
 
+const int BUFFER_SIZE = 1024;
+
 void error(const std::string& message) {
   std::cerr << "Error: " << message << std::endl;
   exit(1);
+}
+
+std::string receive_message(int socket) {
+  char buffer[BUFFER_SIZE];
+  std::string message = "";
+  ssize_t bytesRead;
+  while ((bytesRead = read(socket, buffer, BUFFER_SIZE)) > 0) {
+    message += std::string(buffer, bytesRead);
+    if (message.find('\n') != std::string::npos) {
+      break;
+    }
+  }
+  if (bytesRead == -1) {
+    error("Failed to receive message");
+  }
+  return message;
 }
 
 int main(int argc, char *argv[]){
@@ -59,11 +81,15 @@ int main(int argc, char *argv[]){
 #ifdef DEBUG
   sockaddr_in cli_addr;
   socklen_t len = sizeof(cli_addr);
-  if (getsockname(sock, (struct sockaddr *)&cli_addr, &len) < 0) {
+  if (getsockname(clientSocket, (struct sockaddr *)&cli_addr, &len) < 0) {
     error("Failed to get local socket name");
   }
   std::cout << "Connected to " << Desthost << ":" << port 
   << " local " << inet_ntoa(cli_addr.sin_addr) << ":" << ntohs(cli_addr.sin_port) << std::endl;
 #endif
+
+  std::string serverResponse = receive_message(clientSocket);
+  std::cout << serverResponse << std::endl;
+
 
 }
