@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <netinet/in.h>
 #include <ostream>
 #include <stdio.h>
@@ -7,6 +8,7 @@
 // #include <string>
 #include <string>
 #include <sys/_endian.h>
+#include <sys/_types/_size_t.h>
 #include <sys/_types/_socklen_t.h>
 #include <sys/_types/_ssize_t.h>
 #include <sys/socket.h>
@@ -18,7 +20,7 @@
 
 // Enable if you want debugging to be printed, see examble below.
 // Alternative, pass CFLAGS=-DDEBUG to make, make CFLAGS=-DDEBUG
-#define DEBUG
+// #define DEBUG
 
 
 // Included to get the support library
@@ -67,9 +69,7 @@ int main(int argc, char *argv[]){
 
   /* Do magic */
   int port=atoi(Destport);
-#ifdef DEBUG 
   printf("Host %s, and port %d.\n",Desthost,port);
-#endif
 
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (clientSocket == -1) {
@@ -96,7 +96,9 @@ int main(int argc, char *argv[]){
 #endif
 
   std::string serverResponse = receive_message(clientSocket);
+#ifdef DEBUG
   std::cout << serverResponse << std::endl;
+#endif
 
   send_message(clientSocket, "OK\n");
 
@@ -104,6 +106,8 @@ int main(int argc, char *argv[]){
   std::istringstream iss(message);
   std::string operation, values1, values2;
   iss >> operation >> values1 >> values2;
+
+  std::cout << "ASSIGNMENT: " << operation << " " << values1 << " " << values2 << std::endl;
 
   double fresult = 0.0;
   int iresult = 0;
@@ -123,7 +127,10 @@ int main(int argc, char *argv[]){
     } else if (std::strcmp(operation.c_str(), "fdiv")==0){
       fresult=f1/f2;
     }
+    result = std::to_string(fresult);
+#ifdef DEBUG
     printf("%s %8.8g %8.8g = %8.8g\n",operation.c_str(),f1,f2,fresult);
+#endif
   } else {
     int i1 = std::stoi(values1);
     int i2 = std::stoi(values2);
@@ -137,8 +144,25 @@ int main(int argc, char *argv[]){
     } else if (std::strcmp(operation.c_str(), "div")==0){
       iresult=i1/i2;
     }
-
+    result = std::to_string(iresult);
+#ifdef DEBUG
     printf("%s %d %d = %d \n",operation.c_str(),i1,i2,iresult);
+#endif
   }
 
+#ifdef DEBUG
+    std::cout << "Calculated the result to " << result << std::endl;
+#endif
+
+  send_message(clientSocket, result + "\n");
+
+  std::string serverResult = receive_message(clientSocket);
+  std::string newline = "\n";
+  std::string space = "\0";
+  size_t pos = 0;
+  while ((pos = serverResult.find(newline, pos)) != std::string::npos) {
+    serverResult.replace(pos, newline.length(), space);
+    pos += space.length();
+  }
+  std::cout << serverResult << " (myresult=" << result << ")" << std::endl;
 }
