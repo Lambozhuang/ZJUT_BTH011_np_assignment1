@@ -27,6 +27,7 @@
 #include "calcLib.h"
 
 const int BUFFER_SIZE = 1024;
+const std::string ACCEPTED_VERSION = "TEXT TCP 1.0";
 
 void error(const std::string& message) {
   std::cerr << "Error: " << message << std::endl;
@@ -95,13 +96,17 @@ int main(int argc, char *argv[]){
   << " local " << inet_ntoa(cli_addr.sin_addr) << ":" << ntohs(cli_addr.sin_port) << std::endl;
 #endif
 
-  std::string serverResponse = receive_message(clientSocket);
+  // validate version
+  std::string header = receive_message(clientSocket);
 #ifdef DEBUG
-  std::cout << serverResponse << std::endl;
+  std::cout << header << std::endl;
 #endif
-
+  if (header.find(ACCEPTED_VERSION) == std::string::npos) {
+    error("Connection version not supported");
+  }
   send_message(clientSocket, "OK\n");
 
+  // start assignment
   std::string message = receive_message(clientSocket);
   std::istringstream iss(message);
   std::string operation, values1, values2;
