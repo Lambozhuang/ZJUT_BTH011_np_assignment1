@@ -46,6 +46,12 @@ std::string receive_message(int socket) {
   return message;
 }
 
+void send_message(int socket, const std::string& message) {
+  if (write(socket, message.c_str(), message.size()) == -1) {
+    error("Failed to send message");
+  }
+}
+
 int main(int argc, char *argv[]){
 
   /*
@@ -91,5 +97,9 @@ int main(int argc, char *argv[]){
   std::string serverResponse = receive_message(clientSocket);
   std::cout << serverResponse << std::endl;
 
+  send_message(clientSocket, "OK\n");
 
+  std::string message = receive_message(clientSocket);
+
+  std::cout << message << std::endl;
 }
