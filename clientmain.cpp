@@ -2,6 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 /* You will to add includes here */
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sstream>
+#include <iostream>
+
 
 // Enable if you want debugging to be printed, see examble below.
 // Alternative, pass CFLAGS=-DDEBUG to make, make CFLAGS=-DDEBUG
@@ -9,7 +14,7 @@
 
 
 // Included to get the support library
-#include <calcLib.h>
+#include "calcLib.h"
 
 int main(int argc, char *argv[]){
 
@@ -29,5 +34,13 @@ int main(int argc, char *argv[]){
   printf("Host %s, and port %d.\n",Desthost,port);
 #endif
 
+  int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+  sockaddr_in serverAddr;
+  serverAddr.sin_family = AF_INET;
+  serverAddr.sin_addr.s_addr = inet_addr(Desthost);
+  serverAddr.sin_port = htons(port);
+
   
+
 }
