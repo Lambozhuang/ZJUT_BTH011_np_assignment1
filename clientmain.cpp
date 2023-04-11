@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 /* You will to add includes here */
+// #include <string>
 #include <string>
 #include <sys/_endian.h>
 #include <sys/_types/_socklen_t.h>
@@ -100,6 +101,44 @@ int main(int argc, char *argv[]){
   send_message(clientSocket, "OK\n");
 
   std::string message = receive_message(clientSocket);
+  std::istringstream iss(message);
+  std::string operation, values1, values2;
+  iss >> operation >> values1 >> values2;
 
-  std::cout << message << std::endl;
+  double fresult = 0.0;
+  int iresult = 0;
+
+  std::string result = "";
+  
+  if(operation[0]=='f'){
+    double f1 = std::stod(values1);
+    double f2 = std::stod(values2);
+   
+    if(std::strcmp(operation.c_str(),"fadd")==0){
+      fresult=f1+f2;
+    } else if (std::strcmp(operation.c_str(), "fsub")==0){
+      fresult=f1-f2;
+    } else if (std::strcmp(operation.c_str(), "fmul")==0){
+      fresult=f1*f2;
+    } else if (std::strcmp(operation.c_str(), "fdiv")==0){
+      fresult=f1/f2;
+    }
+    printf("%s %8.8g %8.8g = %8.8g\n",operation.c_str(),f1,f2,fresult);
+  } else {
+    int i1 = std::stoi(values1);
+    int i2 = std::stoi(values2);
+
+    if(std::strcmp(operation.c_str(),"add")==0){
+      iresult=i1+i2;
+    } else if (std::strcmp(operation.c_str(), "sub")==0){
+      iresult=i1-i2;
+    } else if (std::strcmp(operation.c_str(), "mul")==0){
+      iresult=i1*i2;
+    } else if (std::strcmp(operation.c_str(), "div")==0){
+      iresult=i1/i2;
+    }
+
+    printf("%s %d %d = %d \n",operation.c_str(),i1,i2,iresult);
+  }
+
 }
